@@ -25,10 +25,11 @@ dupliquer, supprimer.
 
 ### Éditeur d'estimation (`/estimations/[id]`, `EstimationEditor`)
 
-En-tête éditable : nom, client, description, CMS (combobox à partir de
-`CMS_SUGGERES`, texte libre accepté), taux journalier par défaut, statut
-(`brouillon` / `final`). Sauvegarde automatique différée (debounce, voir
-`useEntitySaver`) — pas de bouton "Enregistrer" explicite.
+En-tête éditable : nom, client, description, CMS (liste déroulante sourcée
+depuis la liste administrable de `/parametres` — voir plus bas), taux
+journalier par défaut, statut (`brouillon` / `final`). Sauvegarde
+automatique différée (debounce, voir `useEntitySaver`) — pas de bouton
+"Enregistrer" explicite.
 
 Onglets :
 1. **Synthèse** — totaux globaux et sous-totaux par catégorie / par
@@ -58,6 +59,34 @@ est actif, pour ne pas réordonner un sous-ensemble de façon ambiguë.
 Barre de filtres (`FiltersBar`) : recherche texte, filtre par catégorie,
 filtre par version/priorité, regroupement (liste simple / par catégorie /
 par version).
+
+#### Personnalisation de la grille (redimensionnement, colonnes masquables)
+
+Sur les tableaux de phase (Design/Réalisation/Transition/Autres charges,
+hors Conception générale — structure différente, non concernée) :
+
+- **Redimensionnement** : glisser la bordure droite d'un en-tête de colonne,
+  ou la bordure basse d'une ligne (poignée révélée au survol de la
+  gouttière de gauche). Chaque dimension est bornée (min/max par colonne,
+  40–400px pour les lignes) pour rester lisible. Double-clic sur une
+  poignée = réinitialise cette colonne/ligne à sa valeur par défaut.
+  Accessible au clavier : `Tab` pour atteindre une poignée (rôle
+  `separator`), flèches pour ajuster (Maj+flèche = pas plus large),
+  Entrée/Espace pour réinitialiser.
+- **Colonnes masquables** : bouton "Colonnes" dans la barre de filtres →
+  panneau listant les 10 colonnes de données, chacune activable/
+  désactivable. Seule **Besoin client** est verrouillée (« Requise ») —
+  c'est le seul contenu qui identifie la ligne ; tout le reste, y compris
+  les colonnes de calcul (Temps total, Coût de la ligne), reste masquable
+  sans jamais affecter les totaux (ceux-ci sont calculés à partir des
+  données, jamais du rendu de la grille). "Tout afficher" réaffiche tout en
+  un clic ; "Réinitialiser les dimensions…" remet largeurs et hauteurs par
+  défaut après confirmation (les colonnes masquées ne sont pas concernées
+  par ce reset, volontairement une action distincte).
+- **Persistance** : `localStorage`, par navigateur — voir
+  [03-spec-technique.md](03-spec-technique.md) pour la justification
+  (pas d'authentification aujourd'hui) et [07-roadmap.md](07-roadmap.md)
+  pour la migration prévue vers une persistance par utilisateur.
 
 ⚠️ **Écart** : aucun export (CSV/Excel/PDF) n'existe aujourd'hui.
 ⚠️ **Écart** : aucun champ hypothèses / exclusions / risques.

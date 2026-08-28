@@ -73,8 +73,9 @@ et la roadmap V1 (introduction de Drizzle).
 ### Extensions prévues (V1/V2, pas encore en base)
 
 - `users`, table de sessions (Auth.js)
-- `cms_technologies` (liste administrable, remplace `CMS_SUGGERES`)
 - `categories` (liste administrable, remplace `CATEGORIES_SUGGEREES`)
+- `user_grid_preferences` (largeurs/hauteurs/colonnes masquées par
+  utilisateur — remplace le `localStorage` actuel, voir plus bas)
 - `historique` (audit : entité, action, auteur, date, diff)
 - `api_tokens`, `webhooks_config`
 
@@ -108,6 +109,54 @@ V1 introduira `/api/v1/*` versionné, documenté (payloads d'exemple), avec
 authentification par token et des webhooks sortants (`estimation.created`,
 `estimation.updated`, `estimation.validated`, `estimation.exported`) — voir
 [07-roadmap.md](07-roadmap.md).
+
+## Préférences de grille (redimensionnement, colonnes masquées)
+
+Concerne `EstimationTable` (onglets Design/Réalisation/Transition/Autres
+charges) — pas `ConceptionGeneraleTable`, structurellement différente et
+non couverte par cette évolution.
+
+```
+src/lib/grillePreferences.ts      Types + logique pure (config des colonnes,
+                                    clamp, lecture/écriture localStorage) —
+                                    testée sans dépendance au DOM
+src/lib/useGrillePreferences.ts   Store externe partagé (useSyncExternalStore,
+                                    même principe que useIsClient) + API de
+                                    mutation immuable
+src/components/estimation/
+  ResizeHandle.tsx                 Poignée pointer+clavier, colonne ou ligne
+  ColonnesPanel.tsx                Bouton "Colonnes" + panneau de config
+```
+
+**Pourquoi `localStorage` et pas une table** : aucune authentification
+n'existe aujourd'hui (voir
+[decisions/003-auth-authjs-credentials.md](decisions/003-auth-authjs-credentials.md)) ;
+une table `user_grid_preferences` nécessiterait un `userId` qui n'existe
+pas encore. `localStorage` (par navigateur) est la meilleure approximation
+disponible d'un réglage "par utilisateur" en attendant V1. Le format est
+versionné (`{ version: 1, ... }`) pour permettre une migration sans perte :
+à l'introduction de l'auth, une table `user_grid_preferences (userId,
+gridId, preferences JSON)` pourra être peuplée en lisant une dernière fois
+le `localStorage` de chaque utilisateur côté client puis en le postant à
+une nouvelle route `POST /api/grille-preferences`.
+
+**Pourquoi ce n'est pas une donnée métier** : les largeurs/hauteurs/
+visibilité ne touchent ni `Ligne` ni `Estimation`, et les calculs
+(`calculations.ts`) ne lisent jamais l'état de la grille — masquer ou
+redimensionner ne peut donc pas fausser un total, par construction.
+
+**Rendu** : `<table style={{tableLayout:"fixed", width: largeurTotale}}>`
++ `<colgroup>` de `<col style={{width}}>`. Note d'implémentation : Chromium
+n'applique les largeurs du `colgroup` comme des valeurs absolues que si la
+largeur totale de la table est explicite — avec `width:auto`, il les traite
+comme de simples ratios. `largeurTotale` est donc calculée (somme des
+colonnes visibles + gouttière + colonne d'actions) plutôt que laissée à
+`auto`.
+
+**Performance** : pas de virtualisation (déjà le cas avant cette évolution).
+Cette fonctionnalité n'ajoute qu'une lecture d'objet en mémoire par cellule
+(pas de calcul), donc n'aggrave pas les performances sur beaucoup de lignes
+— mais ne résout pas non plus ce sujet, qui reste distinct.
 
 ## Sécurité (état actuel)
 

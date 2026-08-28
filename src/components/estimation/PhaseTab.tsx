@@ -6,8 +6,10 @@ import type { TauxParType } from "@/lib/calculations";
 import { Button } from "@/components/ui/Button";
 import { FiltersBar, Filtres } from "@/components/estimation/FiltersBar";
 import { EstimationTable } from "@/components/estimation/EstimationTable";
+import { ColonnesPanel } from "@/components/estimation/ColonnesPanel";
 import { SummaryPanel } from "@/components/estimation/SummaryPanel";
 import { CATEGORIES_SUGGEREES, VERSIONS_SUGGEREES } from "@/lib/constants";
+import { useGrillePreferences } from "@/lib/useGrillePreferences";
 
 interface PhaseTabProps {
   phase: Phase;
@@ -43,6 +45,17 @@ export function PhaseTab({
     version: null,
     groupBy: "categorie",
   });
+
+  const {
+    preferences,
+    definirLargeurColonne,
+    reinitialiserLargeurColonne,
+    definirHauteurLigne,
+    reinitialiserHauteurLigne,
+    basculerColonne,
+    afficherToutesLesColonnes,
+    reinitialiserDimensions,
+  } = useGrillePreferences();
 
   const lignesPhase = useMemo(
     () => lignes.filter((l) => l.phase === phase),
@@ -87,7 +100,14 @@ export function PhaseTab({
             new Set([...VERSIONS_SUGGEREES, ...versionsUtilisees])
           )}
           reorderDisabled={!reorderEnabled}
-        />
+        >
+          <ColonnesPanel
+            colonnesMasquees={preferences.colonnesMasquees}
+            onBasculerColonne={basculerColonne}
+            onAfficherToutesLesColonnes={afficherToutesLesColonnes}
+            onReinitialiserDimensions={reinitialiserDimensions}
+          />
+        </FiltersBar>
 
         <EstimationTable
           lignes={lignesFiltrees}
@@ -100,6 +120,11 @@ export function PhaseTab({
           onReorder={onReorder}
           categoriesUtilisees={categoriesUtilisees}
           versionsUtilisees={versionsUtilisees}
+          preferences={preferences}
+          onDefinirLargeurColonne={definirLargeurColonne}
+          onReinitialiserLargeurColonne={reinitialiserLargeurColonne}
+          onDefinirHauteurLigne={definirHauteurLigne}
+          onReinitialiserHauteurLigne={reinitialiserHauteurLigne}
         />
 
         <div className="border-t border-slate-100 p-3">
