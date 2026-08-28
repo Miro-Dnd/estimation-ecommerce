@@ -11,14 +11,17 @@ Liste toutes les estimations (nom, client, CMS, statut, nombre de besoins,
 total jours, coût total, dernière modification). Actions : créer, ouvrir,
 dupliquer, supprimer.
 
-- **Création** (`NewEstimationDialog`) : demande seulement le **nom** et le
-  **client** (optionnel).
-  - ⚠️ **Écart** : le CMS n'est pas demandé à la création alors que
-    l'exigence le rend obligatoire dès ce moment. Il n'est saisissable
-    qu'ensuite, dans l'éditeur, et reste optionnel en base
-    (`cms TEXT`, nullable).
-  - ⚠️ **Écart** : la liste de CMS proposée (`CMS_SUGGERES`) est une
-    constante figée dans le code, pas une liste administrable.
+- **Création** (`NewEstimationDialog`) : demande le **nom**, le **CMS /
+  technologie** (obligatoire, choisi dans la liste administrable — voir
+  `/parametres`) et le **client** (optionnel). L'API `POST /api/estimations`
+  refuse la création si `cms` est absent ou vide (`400`).
+  - ⚠️ **Écart résiduel** : la contrainte n'est appliquée qu'à la création,
+    pas au niveau de la colonne SQLite (`cms TEXT`, toujours nullable) — une
+    estimation créée avant cette évolution peut encore avoir un CMS vide.
+    L'éditeur permet de le compléter a posteriori. Un `NOT NULL` en base
+    demanderait une réécriture de table (SQLite ne sait pas altérer une
+    contrainte de colonne existante) ; reporté à l'introduction des
+    migrations Drizzle (V1).
 
 ### Éditeur d'estimation (`/estimations/[id]`, `EstimationEditor`)
 
@@ -69,9 +72,14 @@ pas les estimations existantes, cf. règle métier dans
 - `ParametresUoEditor` : % de répartition par défaut de chaque type de temps
   sur les éléments UO.
 - `RepartitionUoEditor` : tarif journalier par défaut de chaque élément.
+- `CmsTechnologiesEditor` : liste administrable des CMS/technologies
+  proposés à la création d'une estimation (ajout, désactivation — jamais de
+  suppression physique, pour ne pas invalider les estimations existantes qui
+  référencent déjà un nom désactivé).
 
-⚠️ **Écart** : pas d'écran d'administration pour les listes de CMS et de
-catégories (aujourd'hui des constantes dans `src/lib/constants.ts`).
+⚠️ **Écart** : pas encore d'écran d'administration pour la liste des
+catégories (toujours une constante de suggestions dans
+`src/lib/constants.ts`, champ libre en pratique).
 
 ## Règles de calcul
 

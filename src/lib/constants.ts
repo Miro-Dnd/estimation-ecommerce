@@ -24,6 +24,9 @@ export const VERSIONS_SUGGEREES = [
   "Priorité basse",
 ] as const;
 
+// N'est plus utilisé pour peupler l'UI directement : sert uniquement à
+// amorcer la table administrable `cms_technologies` (voir src/lib/db.ts) au
+// premier démarrage. La liste réelle, modifiable, vit désormais en base.
 export const CMS_SUGGERES = [
   "Adobe Commerce",
   "Shopify",

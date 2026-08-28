@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
+  CmsTechnologie,
   EstimationInput,
   EstimationWithLignes,
   Ligne,
@@ -11,7 +12,6 @@ import type {
   Phase,
 } from "@/types";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Combobox } from "@/components/ui/Combobox";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PhaseTab } from "@/components/estimation/PhaseTab";
 import { ConceptionGeneraleTab } from "@/components/estimation/ConceptionGeneraleTab";
@@ -25,7 +25,7 @@ import {
   calculerTjmMoyenProjet,
   formaterEuros,
 } from "@/lib/calculations";
-import { CMS_SUGGERES, PHASES, TAUX_JOURNALIER_DEFAUT } from "@/lib/constants";
+import { PHASES, TAUX_JOURNALIER_DEFAUT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 async function jsonFetch(url: string, init?: RequestInit) {
@@ -48,8 +48,10 @@ const ONGLETS: { cle: Onglet; libelle: string }[] = [
 
 export function EstimationEditor({
   estimation: estimationInitiale,
+  cmsTechnologies,
 }: {
   estimation: EstimationWithLignes;
+  cmsTechnologies: CmsTechnologie[];
 }) {
   const router = useRouter();
   const [nom, setNom] = useState(estimationInitiale.nom);
@@ -79,6 +81,16 @@ export function EstimationEditor({
   });
 
   const enregistrementEnCours = headerSaver.isSaving || ligneSaver.isSaving;
+
+  // Liste des CMS proposés au choix : les technologies actives, plus la
+  // valeur actuelle de l'estimation si elle a été désactivée ou saisie avant
+  // l'introduction de la liste administrable — pour ne jamais faire
+  // disparaître silencieusement le choix déjà fait.
+  const optionsCms = useMemo(() => {
+    const noms = cmsTechnologies.filter((t) => t.actif).map((t) => t.nom);
+    if (cms && !noms.includes(cms)) return [cms, ...noms];
+    return noms;
+  }, [cmsTechnologies, cms]);
 
   function updateHeader(patch: EstimationInput) {
     if ("nom" in patch && patch.nom !== undefined) setNom(patch.nom);
@@ -223,13 +235,18 @@ export function EstimationEditor({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-slate-500">CMS</span>
-                <Combobox
+                <select
                   value={cms}
-                  suggestions={CMS_SUGGERES}
-                  onChange={(v) => updateHeader({ cms: v || null })}
-                  placeholder="Ex : Shopify"
-                  className="w-40 border-slate-300 hover:border-slate-400"
-                />
+                  onChange={(e) => updateHeader({ cms: e.target.value || null })}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm"
+                >
+                  {!cms && <option value="">Sélectionner…</option>}
+                  {optionsCms.map((nom) => (
+                    <option key={nom} value={nom}>
+                      {nom}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-slate-500">Taux journalier moyen</span>

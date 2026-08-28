@@ -3,30 +3,35 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import type { CmsTechnologie } from "@/types";
 
 interface NewEstimationDialogProps {
   open: boolean;
   enCours?: boolean;
+  cmsTechnologies: CmsTechnologie[];
   onClose: () => void;
-  onCreate: (nom: string, client: string) => void;
+  onCreate: (nom: string, client: string, cms: string) => void;
 }
 
 export function NewEstimationDialog({
   open,
   enCours,
+  cmsTechnologies,
   onClose,
   onCreate,
 }: NewEstimationDialogProps) {
   const [nom, setNom] = useState("");
   const [client, setClient] = useState("");
+  const [cms, setCms] = useState("");
 
   if (!open) return null;
 
   function submit() {
-    if (!nom.trim() || enCours) return;
-    onCreate(nom.trim(), client.trim());
+    if (!nom.trim() || !cms || enCours) return;
+    onCreate(nom.trim(), client.trim(), cms);
     setNom("");
     setClient("");
+    setCms("");
   }
 
   return (
@@ -59,6 +64,28 @@ export function NewEstimationDialog({
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">
+              CMS / Technologie
+            </label>
+            <select
+              value={cms}
+              onChange={(e) => setCms(e.target.value)}
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            >
+              <option value="">Sélectionner…</option>
+              {cmsTechnologies.map((t) => (
+                <option key={t.id} value={t.nom}>
+                  {t.nom}
+                </option>
+              ))}
+            </select>
+            {cmsTechnologies.length === 0 && (
+              <p className="mt-1 text-xs text-amber-600">
+                Aucune technologie configurée — ajoutez-en une dans Paramètres.
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
               Client (optionnel)
             </label>
             <Input
@@ -77,7 +104,7 @@ export function NewEstimationDialog({
           <Button
             variant="primary"
             size="sm"
-            disabled={!nom.trim() || enCours}
+            disabled={!nom.trim() || !cms || enCours}
             onClick={submit}
           >
             Créer

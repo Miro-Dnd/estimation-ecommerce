@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { randomUUID } from "crypto";
 import type {
+  CmsTechnologie,
   ElementUo,
   Estimation,
   EstimationInput,
@@ -15,6 +16,7 @@ import type {
 } from "@/types";
 import {
   BLOCS_CONCEPTION_GENERALE,
+  CMS_SUGGERES,
   GROUPES_UO,
   PHASE_DEFAUT,
   PROFILS_CONCEPTION_GENERALE,
@@ -118,6 +120,13 @@ function initialiserSchema(db: Database.Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_estimation_tarifs_estimation ON estimation_tarifs(estimationId);
+
+    CREATE TABLE IF NOT EXISTS cms_technologies (
+      id TEXT PRIMARY KEY,
+      nom TEXT NOT NULL UNIQUE,
+      actif INTEGER NOT NULL DEFAULT 1,
+      ordre INTEGER NOT NULL DEFAULT 0
+    );
   `);
 
   // Migration : ajoute la colonne cms aux bases créées avant son introduction.
@@ -221,6 +230,19 @@ function initialiserSchema(db: Database.Database) {
       }
     });
     transaction();
+  }
+
+  // Amorce la liste administrable des CMS/technologies avec les suggestions
+  // qui étaient jusqu'ici codées en dur, sans écraser une liste déjà
+  // personnalisée (table non vide = déjà amorcée ou déjà gérée).
+  const nombreCmsTechnologies = db
+    .prepare(`SELECT COUNT(*) AS n FROM cms_technologies`)
+    .get() as { n: number };
+  if (nombreCmsTechnologies.n === 0) {
+    const insertCms = db.prepare(
+      `INSERT INTO cms_technologies (id, nom, actif, ordre) VALUES (?, ?, 1, ?)`
+    );
+    CMS_SUGGERES.forEach((nom, index) => insertCms.run(randomUUID(), nom, index));
   }
 
   // Migration : même principe pour les tarifs par estimation, introduits
@@ -671,4 +693,82 @@ export function modifierTarifEstimation(
   db.prepare(
     `UPDATE estimation_tarifs SET tarifJournalier = ? WHERE estimationId = ? AND cle = ?`
   ).run(tarifJournalier, estimationId, cle);
+}
+
+// ---------------------------------------------------------------------------
+// CMS / technologies — liste administrable, proposée à la création d'une
+// estimation. Un CMS n'est jamais supprimé (seulement désactivé) pour ne pas
+// invalider les estimations existantes qui le référencent déjà.
+// ---------------------------------------------------------------------------
+
+interface LigneCmsTechnologie {
+  id: string;
+  nom: string;
+  actif: number;
+  ordre: number;
+}
+
+function versCmsTechnologie(ligne: LigneCmsTechnologie): CmsTechnologie {
+  return { id: ligne.id, nom: ligne.nom, actif: !!ligne.actif, ordre: ligne.ordre };
+}
+
+export function listerCmsTechnologies(): CmsTechnologie[] {
+  const db = getDb();
+  const lignes = db
+    .prepare(`SELECT id, nom, actif, ordre FROM cms_technologies ORDER BY ordre ASC, nom ASC`)
+    .all() as LigneCmsTechnologie[];
+  return lignes.map(versCmsTechnologie);
+}
+
+export function creerCmsTechnologie(nom: string): CmsTechnologie {
+  const db = getDb();
+  const nomNettoye = nom.trim();
+  const existante = db
+    .prepare(`SELECT id FROM cms_technologies WHERE LOWER(nom) = LOWER(?)`)
+    .get(nomNettoye);
+  if (existante) {
+    throw new Error("cms_nom_deja_utilise");
+  }
+  const maxOrdre = db
+    .prepare(`SELECT COALESCE(MAX(ordre), -1) AS maxOrdre FROM cms_technologies`)
+    .get() as { maxOrdre: number };
+  const ligne: LigneCmsTechnologie = {
+    id: randomUUID(),
+    nom: nomNettoye,
+    actif: 1,
+    ordre: maxOrdre.maxOrdre + 1,
+  };
+  db.prepare(
+    `INSERT INTO cms_technologies (id, nom, actif, ordre) VALUES (@id, @nom, @actif, @ordre)`
+  ).run(ligne);
+  return versCmsTechnologie(ligne);
+}
+
+export function modifierCmsTechnologie(
+  id: string,
+  input: { nom?: string; actif?: boolean }
+): CmsTechnologie | null {
+  const db = getDb();
+  const existante = db
+    .prepare(`SELECT id, nom, actif, ordre FROM cms_technologies WHERE id = ?`)
+    .get(id) as LigneCmsTechnologie | undefined;
+  if (!existante) return null;
+
+  const nomNettoye = input.nom?.trim();
+  if (nomNettoye && nomNettoye.toLowerCase() !== existante.nom.toLowerCase()) {
+    const conflit = db
+      .prepare(`SELECT id FROM cms_technologies WHERE LOWER(nom) = LOWER(?) AND id != ?`)
+      .get(nomNettoye, id);
+    if (conflit) {
+      throw new Error("cms_nom_deja_utilise");
+    }
+  }
+
+  const maj: LigneCmsTechnologie = {
+    ...existante,
+    nom: nomNettoye || existante.nom,
+    actif: input.actif === undefined ? existante.actif : input.actif ? 1 : 0,
+  };
+  db.prepare(`UPDATE cms_technologies SET nom = @nom, actif = @actif WHERE id = @id`).run(maj);
+  return versCmsTechnologie(maj);
 }

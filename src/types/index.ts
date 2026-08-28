@@ -92,6 +92,13 @@ export interface TarifUo {
   tarifJournalier: number;
 }
 
+export interface CmsTechnologie {
+  id: string;
+  nom: string;
+  actif: boolean;
+  ordre: number;
+}
+
 export interface EstimationInput {
   nom?: string;
   client?: string | null;

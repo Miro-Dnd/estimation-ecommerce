@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { obtenirEstimation } from "@/lib/db";
+import { listerCmsTechnologies, obtenirEstimation } from "@/lib/db";
 import { EstimationEditor } from "@/components/estimation/EstimationEditor";
 
 // Une estimation est modifiée en continu par son auteur : la page doit
@@ -14,5 +14,6 @@ export default async function EstimationPage({
   const estimation = obtenirEstimation(id);
   if (!estimation) notFound();
 
-  return <EstimationEditor estimation={estimation} />;
+  const cmsTechnologies = listerCmsTechnologies();
+  return <EstimationEditor estimation={estimation} cmsTechnologies={cmsTechnologies} />;
 }
