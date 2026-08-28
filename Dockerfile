@@ -20,6 +20,13 @@ FROM node:22-slim AS run
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+# Le serveur "standalone" de Next.js écoute sur $HOSTNAME s'il est défini, or
+# Docker fixe automatiquement HOSTNAME à l'ID du conteneur pour tout process
+# — sans ce override explicite, le serveur se lie à cette adresse interne
+# au lieu de toutes les interfaces, et devient injoignable depuis
+# l'extérieur du conteneur (le proxy de la plateforme d'hébergement, en
+# particulier).
+ENV HOSTNAME="0.0.0.0"
 
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
