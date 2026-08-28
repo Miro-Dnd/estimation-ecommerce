@@ -5,6 +5,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ## [Non publié]
 
 ### Added
+- Grille d'estimation personnalisable : colonnes et lignes redimensionnables
+  (glisser une bordure, ou clavier — flèches pour ajuster, Entrée pour
+  réinitialiser), colonnes masquables/réaffichables via un panneau
+  "Colonnes" (seule « Besoin client » reste obligatoire), réinitialisation
+  globale des dimensions avec confirmation. Préférences conservées par
+  navigateur (`localStorage`), en attendant l'authentification (V1) pour
+  une persistance par utilisateur.
 - CMS/technologie obligatoire à la création d'une estimation, et
   administrable (ajout, désactivation) depuis `/parametres` — remplace la
   liste figée `CMS_SUGGERES`.

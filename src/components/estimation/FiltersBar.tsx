@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,9 @@ interface FiltersBarProps {
   categoriesDisponibles: string[];
   versionsDisponibles: string[];
   reorderDisabled: boolean;
+  // Emplacement pour des actions supplémentaires (ex. le panneau
+  // "Colonnes"), affichées en bout de barre — garde FiltersBar générique.
+  children?: ReactNode;
 }
 
 export function FiltersBar({
@@ -27,6 +31,7 @@ export function FiltersBar({
   categoriesDisponibles,
   versionsDisponibles,
   reorderDisabled,
+  children,
 }: FiltersBarProps) {
   const filtreActif = !!filtres.categorie || !!filtres.version || !!filtres.recherche;
 
@@ -110,6 +115,8 @@ export function FiltersBar({
           Passez en « Liste simple », sans filtre, pour réordonner les lignes par glisser-déposer.
         </span>
       )}
+
+      {children}
     </div>
   );
 }

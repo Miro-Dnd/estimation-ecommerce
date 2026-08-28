@@ -15,6 +15,9 @@ Déjà en place :
 - [x] Champ CMS/technologie sur l'estimation
 - [x] Filtres, recherche, tri, regroupement
 - [x] Persistance SQLite locale + déploiement Railway
+- [x] Grille personnalisable : colonnes/lignes redimensionnables, colonnes
+      masquables (préférences en `localStorage`, par navigateur — voir
+      [03-spec-technique.md](03-spec-technique.md))
 
 Reste à faire pour clore le MVP proprement :
 - [x] Rendre le CMS obligatoire (UI de création + validation API) et
@@ -34,6 +37,8 @@ Reste à faire pour clore le MVP proprement :
 - [ ] Authentification (Auth.js, email + mot de passe — voir
       [decisions/003-auth-authjs-credentials.md](decisions/003-auth-authjs-credentials.md))
 - [ ] Catégories administrables (table `categories`)
+- [ ] Migration des préférences de grille du `localStorage` vers une table
+      `user_grid_preferences` (par utilisateur, une fois l'auth en place)
 - [ ] Migrations versionnées et réversibles (introduction de Drizzle,
       voir [decisions/002-sqlite-vs-postgres.md](decisions/002-sqlite-vs-postgres.md))
 - [ ] API `/api/v1/*` documentée (payloads d'exemple), authentifiée par
