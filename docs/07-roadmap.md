@@ -17,9 +17,10 @@ Déjà en place :
 - [x] Persistance SQLite locale + déploiement Railway
 
 Reste à faire pour clore le MVP proprement :
-- [ ] Rendre le CMS obligatoire (UI de création + contrainte en base) et
-      administrable (table `cms_technologies` au lieu de la constante
-      `CMS_SUGGERES`)
+- [x] Rendre le CMS obligatoire (UI de création + validation API) et
+      administrable (table `cms_technologies`, écran dans `/parametres`) —
+      contrainte `NOT NULL` en base non faite (nécessite une réécriture de
+      table sous SQLite), reportée à l'introduction de Drizzle
 - [ ] Export CSV
 - [ ] Champ hypothèses / exclusions / risques sur l'estimation
 - [ ] Historique minimal des modifications (au moins : quoi, quand — même

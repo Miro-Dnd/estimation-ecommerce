@@ -8,6 +8,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
+  if (typeof body.cms !== "string" || !body.cms.trim()) {
+    return NextResponse.json(
+      { error: "Le CMS / la technologie est obligatoire" },
+      { status: 400 }
+    );
+  }
   const estimation = creerEstimation({
     nom: body.nom,
     client: body.client,

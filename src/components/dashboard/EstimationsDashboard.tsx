@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { EstimationSummary } from "@/types";
+import type { CmsTechnologie, EstimationSummary } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -15,8 +15,10 @@ import { formaterEuros, formaterUo } from "@/lib/calculations";
 
 export function EstimationsDashboard({
   estimationsInitiales,
+  cmsTechnologies,
 }: {
   estimationsInitiales: EstimationSummary[];
+  cmsTechnologies: CmsTechnologie[];
 }) {
   const router = useRouter();
   const [estimations, setEstimations] = useState(estimationsInitiales);
@@ -35,13 +37,13 @@ export function EstimationsDashboard({
     );
   }, [estimations, recherche]);
 
-  async function creerEstimation(nom: string, client: string) {
+  async function creerEstimation(nom: string, client: string, cms: string) {
     setEnCours(true);
     try {
       const res = await fetch("/api/estimations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, client: client || null }),
+        body: JSON.stringify({ nom, client: client || null, cms }),
       });
       const estimation = await res.json();
       router.push(`/estimations/${estimation.id}`);
@@ -208,6 +210,7 @@ export function EstimationsDashboard({
       <NewEstimationDialog
         open={dialogCreationOuvert}
         enCours={enCours}
+        cmsTechnologies={cmsTechnologies}
         onClose={() => setDialogCreationOuvert(false)}
         onCreate={creerEstimation}
       />

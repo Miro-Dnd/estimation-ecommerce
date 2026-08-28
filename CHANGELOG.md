@@ -5,6 +5,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ## [Non publié]
 
 ### Added
+- CMS/technologie obligatoire à la création d'une estimation, et
+  administrable (ajout, désactivation) depuis `/parametres` — remplace la
+  liste figée `CMS_SUGGERES`.
 - Documentation vivante (`docs/`) : spécifications générale, fonctionnelle
   et technique, guides d'installation/déploiement/contribution, roadmap
   MVP/V1/V2, journal de décisions techniques (ADR).

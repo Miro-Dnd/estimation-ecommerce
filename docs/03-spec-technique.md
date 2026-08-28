@@ -52,6 +52,15 @@ tarifs_uo (cle) PK                  -- tarif journalier, réglage global
 
 estimation_tarifs (estimationId, cle) PK     -- copie par estimation
   tarifJournalier
+
+cms_technologies
+  id (PK), nom (unique), actif, ordre
+  -- liste administrable des CMS/technologies proposés à la création d'une
+  -- estimation (/parametres) ; jamais de suppression physique, seulement
+  -- actif=0, pour ne pas invalider les estimations qui référencent déjà un
+  -- nom désactivé. estimations.cms stocke le nom choisi (pas une FK) : pas
+  -- de contrainte d'intégrité référentielle, cohérent avec le choix de ne
+  -- pas encore introduire d'ORM/migrations versionnées (voir plus bas).
 ```
 
 Les migrations sont aujourd'hui appliquées à la main dans
@@ -91,6 +100,9 @@ documentées formellement (pas d'OpenAPI), non authentifiées.
 | PATCH | `/api/estimations/:id/tarifs` | Modifier les tarifs de l'estimation |
 | GET/PATCH | `/api/parametres-uo` | Répartition UO globale |
 | GET/PATCH | `/api/tarifs-uo` | Tarifs globaux |
+| GET | `/api/cms-technologies` | Liste des CMS/technologies (actifs et inactifs) |
+| POST | `/api/cms-technologies` | Créer un CMS/technologie (`409` si le nom existe déjà) |
+| PATCH | `/api/cms-technologies/:id` | Renommer / activer / désactiver |
 
 V1 introduira `/api/v1/*` versionné, documenté (payloads d'exemple), avec
 authentification par token et des webhooks sortants (`estimation.created`,

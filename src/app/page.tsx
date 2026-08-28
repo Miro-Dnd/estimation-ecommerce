@@ -1,4 +1,4 @@
-import { listerEstimations } from "@/lib/db";
+import { listerCmsTechnologies, listerEstimations } from "@/lib/db";
 import { EstimationsDashboard } from "@/components/dashboard/EstimationsDashboard";
 
 // Les estimations sont modifiées en continu (création, suppression, édition) :
@@ -8,5 +8,11 @@ export const dynamic = "force-dynamic";
 
 export default function DashboardPage() {
   const estimations = listerEstimations();
-  return <EstimationsDashboard estimationsInitiales={estimations} />;
+  const cmsTechnologies = listerCmsTechnologies().filter((t) => t.actif);
+  return (
+    <EstimationsDashboard
+      estimationsInitiales={estimations}
+      cmsTechnologies={cmsTechnologies}
+    />
+  );
 }
